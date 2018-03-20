@@ -1,0 +1,30 @@
+<Container>:
+    mainview: mainview
+    rows: 1
+	clients : clients
+	master : mastersection
+
+    BoxLayout:
+        orientation: "vertical"
+        Label:
+            id: mainview
+            font_size: dp(50)
+            text: '0'
+
+        BoxLayout:
+            orientation: "horizontal"
+            spacing : 20
+
+            BoxLayout:
+                size_hint_x: 2
+                orientation: "vertical"
+                id: mastersection
+                Label:
+                    id: master
+                    text: 'Master'
+
+
+            BoxLayout:
+                orientation: "horizontal"
+                size_hint_x: 10
+                id: clients
