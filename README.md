@@ -36,4 +36,11 @@ pip3 install git+https://github.com/kivy/kivy.git@master
 
 # Install instructions Windows
 
-TBD (but it works, because i am developing under Windows)
+
+python -m pip install --upgrade pip wheel setuptools
+python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
+python -m pip install kivy.deps.gstreamer (If you encounter a MemoryError while installing, add after pip install an option –no-cache-dir)
+python -m pip install https://kivy.org/downloads/appveyor/kivy/Kivy-1.10.1.dev0-cp36-cp36m-win32.whl
+
+python -m pip install twisted (Maybe you have to install C++ build tools)
+
