@@ -21,6 +21,7 @@ from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
 from kivy.properties import ListProperty
 from kivy.clock import Clock
+from functools import partial
 
 from os import listdir
 
@@ -54,6 +55,12 @@ class CueSysServer(protocol.Protocol):
                 self.clients[self.uuid]['status'] -= 0b0001
                 self.clients[self.uuid]['status'] += 0b0010
             print('Setting Status to 2 for '+self.uuid + ' now: '+str(self.clients[self.uuid]['status']))
+
+    def sendName(self, name):
+        self.transport.write(('Name@'+str(name).encode()))
+
+    def sendStatus(self,status):
+        self.transport.write(('Status@'+str(status)).encode())
 
 
         #response = self.factory.app.handle_message(self,data)
@@ -194,6 +201,16 @@ class GoMasterButton(Button):
     def setOff(self):
         self.background_color = self.background_color_normal
 
+class NamePopup(Popup):
+
+    app = False
+    uuid = False
+
+    def __init__(self, app,uuid, **kwargs):
+        super(Popup, self).__init__(**kwargs)
+        self.app = app
+        self.uuid = uuid
+
 
 class Container(GridLayout):
     display = ObjectProperty()
@@ -227,9 +244,10 @@ class Container(GridLayout):
         elements = {}
         self.app = app
         layout = BoxLayout(orientation='vertical', id=uuid)
+        popupcallback = partial(self.app.popupName, uuid)
         #need to find a good way for the renaming thing. For now take the uuid as the name
         l = Label(text='[ref='+uuid+']'+name+'[/ref]', font_size='15sp', markup=True)
-        l.bind(on_ref_press=self.app.popupName)
+        l.bind(on_ref_press=popupcallback)
         btn1 = StbButton(id='Stb_' + uuid)
         btn1.bind(on_release=self.on_event)
         btn2 = PresetButton(id='Prs_' + uuid)
@@ -247,6 +265,7 @@ class Container(GridLayout):
         elements['Stb_' + uuid] = btn1
         elements['Prs_' + uuid] = btn2
         elements['Go_' + uuid] = btn3
+        elements['Label_' + uuid] = l
         return elements
 
     def deleteClient(self,layout):
@@ -397,13 +416,16 @@ class MainApp(App):
             self.onoff = False
 
         self.udpBCAST.sendDatagram()
+        #for key, value in self.TCPClients.items():
+    #        if self.TCPClients[key]['connection']:
+    #            self.TCPClients[key]['connection'].transport.write(('Status@'+str(self.TCPClients[key]['status'])).encode())
         for key, value in self.TCPClients.items():
             if self.TCPClients[key]['connection']:
-                self.TCPClients[key]['connection'].transport.write(('Status@'+str(self.TCPClients[key]['status'])).encode())
+                self.TCPClients[key]['connection'].sendStatus(self.TCPClients[key]['status'])
 
     def btnPressed(self, obj):
         pair = obj.id.split('_')
-        
+
         if pair[0] == 'Stb':
             if self.TCPClients[pair[1]]['status'] & 0b1000:
                 self.TCPClients[pair[1]]['status'] -= 0b1000
@@ -509,6 +531,36 @@ class MainApp(App):
                         self.TCPClients[key]['status'] -= 0b0001
                     self.TCPClients[key]['status'] += 0b1000
 
+    def popupName(self,label,value,uuid):
+
+        # create content and add to the popup
+        name = self.TCPClients[uuid]['name']
+
+        #layout = BoxLayout(orientation='vertical')
+        layout = FloatLayout(id='layout')
+        textinput = TextInput(text=self.TCPClients[uuid]['name'], multiline=False, size_hint=(1, .2),pos_hint={'x':0, 'y':.8},id='mytext')
+        exitbutton = Button(text='Save', size_hint=(1, .2),pos_hint={'x':0, 'y':0})
+        layout.add_widget(textinput)
+        layout.add_widget(exitbutton)
+        popup = NamePopup(self,uuid, content=layout,title='Change Name', auto_dismiss=False)
+
+        # bind the on_press event of the button to the dismiss function
+        popup.bind(on_dismiss=partial(self.saveName,textinput,uuid))
+        exitbutton.bind(on_press=popup.dismiss)
+        #exitbutton.bind(on_press=)
+
+        # open the popup
+        popup.open()
+        #self.TCPClients[value]['name'] = self.uuid
+        #label.text = text
+
+
+    def saveName(self, textinput,uuid,obj):
+        self.TCPClients[uuid]['name'] = textinput.text
+        self.elements[uuid]['Label_'+uuid].text = textinput.text
+        if self.TCPClients[uuid]['connection']:
+            self.TCPClients[uuid]['connection'].sendName(textinput.text)
+
     # ----------------- Network Stuff -----------------------
     def handle_message(self, msg):
 
@@ -532,34 +584,10 @@ class MainApp(App):
         self.elements.pop(name,None)
         self.TCPClients.pop(name, None)
 
-    def popupName(self,label,value):
 
-        # create content and add to the popup
-        name = self.TCPClients[value]['name']
-
-        #layout = BoxLayout(orientation='vertical')
-        layout = FloatLayout()
-        textinput = TextInput(text=self.TCPClients[value]['name'], multiline=False, focus=True, size_hint=(1, .2),pos_hint={'x':0, 'y':.8})
-        exitbutton = Button(text='Save', size_hint=(1, .2),pos_hint={'x':0, 'y':0})
-        layout.add_widget(textinput)
-        layout.add_widget(exitbutton)
-        popup = Popup(content=layout,title='Change Name', auto_dismiss=False)
-
-        # bind the on_press event of the button to the dismiss function
-        popup.bind(on_dismiss=self.saveName)
-        #exitbutton.bind(on_press=popup.dismiss)
-        exitbutton.bind(on_press=self.test)
-
-        # open the popup
-        popup.open()
-        #self.TCPClients[value]['name'] = self.uuid
-        #label.text = text
-
-    def test(self,bla):
-        print(str(bla))
-
-    def saveName(self, test):
-        print('got '+str(test.name))
+    def on_anything(self, *args, **kwargs):
+        print('The flexible function has *args of', str(args),
+            "and **kwargs of", str(kwargs))
 
 
 if __name__ == "__main__":
