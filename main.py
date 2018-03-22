@@ -557,7 +557,7 @@ class MainApp(App):
 
     def saveName(self, textinput,uuid,obj):
         self.TCPClients[uuid]['name'] = textinput.text
-        self.elements[uuid]['Label_'+uuid].text = textinput.text
+        self.elements[uuid]['Label_'+uuid].text = '[ref='+uuid+']'+textinput.text+'[/ref]'
         if self.TCPClients[uuid]['connection']:
             self.TCPClients[uuid]['connection'].sendName(textinput.text)
 
