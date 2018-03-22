@@ -57,7 +57,7 @@ class CueSysServer(protocol.Protocol):
             print('Setting Status to 2 for '+self.uuid + ' now: '+str(self.clients[self.uuid]['status']))
 
     def sendName(self, name):
-        self.transport.write(('Name@'+str(name).encode()))
+        self.transport.write(('Name@'+str(name)).encode())
 
     def sendStatus(self,status):
         self.transport.write(('Status@'+str(status)).encode())
