@@ -355,10 +355,9 @@ class MainApp(App):
         self.clientstatus['Master'] = 0
 
     def addClient(self, uuid, name):
-        print(str(self.knownclients))
         if uuid in self.knownclients:
-            print('fond it in dict')
             self.elements[uuid] = self.display.addButton(uuid,self.knownclients[uuid]['name'],self)
+            self.TCPClients[uuid]['name'] = self.knownclients[uuid]['name']
         else:
             self.elements[uuid] = self.display.addButton(uuid,name,self)
         self.clientstatus[uuid] = 0
