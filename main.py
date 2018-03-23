@@ -358,8 +358,11 @@ class MainApp(App):
         if uuid in self.knownclients:
             self.elements[uuid] = self.display.addButton(uuid,self.knownclients[uuid]['name'],self)
             self.TCPClients[uuid]['name'] = self.knownclients[uuid]['name']
+            self.TCPClients[uuid]['connection'].sendName(self.knownclients[uuid]['name'])
+            self.saveXML()
         else:
             self.elements[uuid] = self.display.addButton(uuid,name,self)
+            self.knownclients[uuid] = {'name':uuid}
         self.clientstatus[uuid] = 0
 
     def blinker(self, dt):
@@ -562,9 +565,12 @@ class MainApp(App):
 
     def saveName(self, textinput,uuid,obj):
         self.TCPClients[uuid]['name'] = textinput.text
+        self.knownclients[uuid]['name'] = textinput.text
         self.elements[uuid]['Label_'+uuid].text = '[ref='+uuid+']'+textinput.text+'[/ref]'
         if self.TCPClients[uuid]['connection']:
             self.TCPClients[uuid]['connection'].sendName(textinput.text)
+
+        self.saveXML()
 
     # ----------------- Network Stuff -----------------------
     def handle_message(self, msg):
@@ -595,6 +601,7 @@ class MainApp(App):
         tree = ET.parse('clients.xml')
         root = tree.getroot()
 
+        # {uuid:{name:xxxxx}}
         for elements in root:
             if elements.tag=="clients":
                 for client in elements:
@@ -604,7 +611,14 @@ class MainApp(App):
                                 self.knownclients[uuid.text.strip()] = client.attrib
 
     def saveXML(self):
-        pass
+        root = ET.Element("data")
+        clientsnode = ET.SubElement(root, "clients")
+        for key, client in self.knownclients.items():
+            clientnode = ET.SubElement(clientsnode, "client", name=client["name"])
+            ET.SubElement(clientnode, "uuid").text = key
+        tree = ET.ElementTree(root)
+        tree.write(open('clients.xml', 'w'), encoding='unicode')
+
 
     #--------------------- Debug Function --------------------
     def on_anything(self, *args, **kwargs):
