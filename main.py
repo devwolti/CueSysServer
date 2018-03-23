@@ -22,6 +22,7 @@ from kivy.uix.textinput import TextInput
 from kivy.properties import ListProperty
 from kivy.clock import Clock
 from functools import partial
+import xml.etree.ElementTree as ET
 
 from os import listdir
 
@@ -244,7 +245,7 @@ class Container(GridLayout):
         elements = {}
         self.app = app
         layout = BoxLayout(orientation='vertical', id=uuid)
-        popupcallback = partial(self.app.popupName, uuid)
+        popupcallback = partial(self.app.popupName, name)
         #need to find a good way for the renaming thing. For now take the uuid as the name
         l = Label(text='[ref='+uuid+']'+name+'[/ref]', font_size='15sp', markup=True)
         l.bind(on_ref_press=popupcallback)
@@ -299,6 +300,7 @@ class MainApp(App):
     onoff = False
 
     udpBCAST = False
+    knownclients = {}
 
     # ------------------- App Stuff --------------------
     # first setup
@@ -344,6 +346,8 @@ class MainApp(App):
         except:
             print('Server could not be started! Is another instance running?')
 
+        self.readXML()
+
         return display
 
     def addMaster(self):
@@ -351,7 +355,12 @@ class MainApp(App):
         self.clientstatus['Master'] = 0
 
     def addClient(self, uuid, name):
-        self.elements[uuid] = self.display.addButton(uuid,name,self)
+        print(str(self.knownclients))
+        if uuid in self.knownclients:
+            print('fond it in dict')
+            self.elements[uuid] = self.display.addButton(uuid,self.knownclients[uuid]['name'],self)
+        else:
+            self.elements[uuid] = self.display.addButton(uuid,name,self)
         self.clientstatus[uuid] = 0
 
     def blinker(self, dt):
@@ -416,9 +425,6 @@ class MainApp(App):
             self.onoff = False
 
         self.udpBCAST.sendDatagram()
-        #for key, value in self.TCPClients.items():
-    #        if self.TCPClients[key]['connection']:
-    #            self.TCPClients[key]['connection'].transport.write(('Status@'+str(self.TCPClients[key]['status'])).encode())
         for key, value in self.TCPClients.items():
             if self.TCPClients[key]['connection']:
                 self.TCPClients[key]['connection'].sendStatus(self.TCPClients[key]['status'])
@@ -584,7 +590,24 @@ class MainApp(App):
         self.elements.pop(name,None)
         self.TCPClients.pop(name, None)
 
+    #--------------------- XML Stuff -------------------------
 
+    def readXML(self):
+        tree = ET.parse('clients.xml')
+        root = tree.getroot()
+
+        for elements in root:
+            if elements.tag=="clients":
+                for client in elements:
+                    if client.tag=="client":
+                        for uuid in client:
+                            if uuid.tag=="uuid":
+                                self.knownclients[uuid.text.strip()] = client.attrib
+
+    def saveXML(self):
+        pass
+
+    #--------------------- Debug Function --------------------
     def on_anything(self, *args, **kwargs):
         print('The flexible function has *args of', str(args),
             "and **kwargs of", str(kwargs))
