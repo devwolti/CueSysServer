@@ -2,7 +2,7 @@
 Cue System for Stage purposes. Written in Python
 
 # Why?
-A lot of small drama/theater clubs do not have the money to go for big stage systems, but the projects are mostly not getting smaller or easier. This is an approach to solve this problem in a cheap way. The system is far from perfect and does not intend to be, but you are welcome to contribute. Maybe we can build something great. We are using it at the moment with a server on X86 and Raspberry PIs with a touchscreen as clients.
+A lot of small drama/theater clubs do not have the money to go for big stage systems, but the projects are mostly not getting smaller or easier. This is an approach to solve this problem in a cheap and easy way. The system is far from perfect and does not intend to be, but you are welcome to contribute. Maybe we can build something great. We are using it at the moment with a server on X86 and Raspberry PIs with a touchscreen as clients. Why Pyton? Good question, i know, it was made in hell (and i hate frameworks, because they always have more bugs than features). But there is not a fast and easy cross platform language (and no, java was not an option, because of the jvm and the RPi). Feel free to write clients/servers for it in any language you want, i'll publish all protocols. This project tries to be as open as it can be.
 
 # Milestones
 
