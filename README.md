@@ -1,6 +1,20 @@
 # CueSysServer
 Cue System for Stage purposes. Written in Python
 
+# Why?
+A lot of small drama/theater clubs do not have the money to go for big stage systems, but the projects are mostly not getting smaller or easier. This is an approach to solve this problem in a cheap way. The system is far from perfect and does not intend to be, but you are welcome to contribute. Maybe we can build something great. We are using it at the moment with a server on X86 and Raspberry PIs with a touchscreen as clients.
+
+# Milestones
+
+Alpha
+Build a running alpha which can display cues and the clients can be controlled by the master
+
+Improvements:
+- a "real" non just text protocol (works as a first sketch though)
+- mobile version (even though mobile devices and wifi do not really belong in a failsafe scenario where the wifi quality changes with the amount of people in the room)
+- usability improvements
+- connection to the main project (complete show system for cues/light/automation and so on)
+
 
 # Install instructions Linux (Ubuntu)
 
